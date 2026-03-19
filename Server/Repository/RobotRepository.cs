@@ -108,13 +108,19 @@ public class RobotRepository : IRobotRepository
 
     public async Task<List<Robot>> List()
     {
+        /*
+          have made changes instead of DESC in  list added NULLS LAST 
+          Becaause of this robots never looogged in appear before robots that have.
+            most recently logged in robots appear first, 
+            and robots that have never logged in appear at the end of the list.
+         * */
         var robots = await _dbConnection.QueryAsync(
             @"SELECT
                 *
             FROM
                 sortbot.robot
             ORDER BY
-                last_log_in_at DESC,
+                last_log_in_at DESC NULLS LAST, 
                 robot_id ASC
             LIMIT 100"
         );

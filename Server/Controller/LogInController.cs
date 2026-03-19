@@ -63,7 +63,9 @@ public class LogInController : ControllerBase
         {
             return Unauthorized();
         }
-
+        // Never updated the LoginAt timestamp here in DB, hence it was always remaining NULL
+        //Fix added to set the LoginAt timestamp to current time.
+        await _robotRepository.SetLastLogInAtNow(robot.RobotId);
         return Ok(new LogInAsRobotResponse
         {
             Token = GenerateToken(

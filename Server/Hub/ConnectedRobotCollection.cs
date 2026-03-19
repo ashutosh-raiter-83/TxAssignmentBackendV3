@@ -1,4 +1,5 @@
 ﻿using RobotShared.Hub;
+using System.Collections.Concurrent;
 
 namespace Server.Hub;
 
@@ -12,7 +13,10 @@ public interface IConnectedRobotCollection
 
 public class ConnectedRobotCollection : IConnectedRobotCollection
 {
-    private readonly Dictionary<string, IRobotHubReceiver> _userId2Client = new();
+    // Dictionary is not thread safe, added ConcurrentDictionary instead
+    // With Race condition, multiple threads can access and modify the dictionary at the same
+    // time, which can lead to unpredictable issues like IndexOutOfRange or KeyNotfound may cause datastructure corrupted.
+    private readonly ConcurrentDictionary<string, IRobotHubReceiver> _userId2Client = new();
 
     public bool TryGetClient(string userId, out IRobotHubReceiver? client)
     {
@@ -27,7 +31,9 @@ public class ConnectedRobotCollection : IConnectedRobotCollection
 
     public Task OnDisconnected(string userId)
     {
-        _userId2Client.Remove(userId, out _);
+        // Instead of Remove, Added TryRemove to avoid potential issues when multiple threads
+        // try to remove the same userId at the same time
+        _userId2Client.TryRemove(userId, out _);
         return Task.CompletedTask;
     }
 }

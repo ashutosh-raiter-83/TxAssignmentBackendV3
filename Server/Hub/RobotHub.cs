@@ -52,6 +52,16 @@ public class RobotHub : StreamingHubBase<IRobotHub, IRobotHubReceiver>, IRobotHu
         {
             throw new ReturnStatusException(StatusCode.NotFound, "Not found");
         }
+        // Above lines of code have checked if exist but returnes Not found, but no
+        // code has written to checkif result was already reported before creating new one
+        // In receive command repository, There is Fetch method can be used to check an existing result
+        // with that we can return Already Exists Status code.
+        
+        var existingResult = await _receivedCommandResultRepository.Fetch(_robotId, commandResult.CommandId);
+        if(existingResult != null)
+        {
+            throw new ReturnStatusException(StatusCode.AlreadyExists, "Already exists");
+        }
 
         await _receivedCommandResultRepository.Create(new ReceivedCommandResult()
         {
