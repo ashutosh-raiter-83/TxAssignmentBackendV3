@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="IntegrationTest/IntegrationTest.csproj" Id="b3404891-8069-45f6-b924-1509749ab9a3" />
+  <Project Path="LocalDevDependencies/LocalDevDependencies.csproj" Id="9ae4e723-6189-400c-8349-d58eb470f6b2" />
+  <Project Path="RobotClient/RobotClient.csproj" Id="634daefa-2021-48df-930a-f9ff2f9e4e98" />
+  <Project Path="RobotShared/RobotShared.csproj" Id="38f27c7e-94ac-4d5a-9422-39c3b5c2534b" />
+  <Project Path="RobotSimulator/RobotSimulator.csproj" Id="fef79157-b9ed-4dff-afe0-c2adbe5266c0" />
+  <Project Path="Server/Server.csproj" />
+  <Project Path="UnitTest/UnitTest.csproj" Id="14cccc66-7dbe-4096-bc7e-01974523ba1c" />
+</Solution>

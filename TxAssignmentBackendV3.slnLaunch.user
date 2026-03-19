@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Local Development",
+    "Projects": [
+      {
+        "Path": "Server\\Server.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "RobotClient\\RobotClient.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "LocalDevDependencies\\LocalDevDependencies.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
