@@ -100,7 +100,7 @@ public class CommandController_SendTest : WebAppFactoryFixture
             )),
             Times.Once
         );
-        
+
         var persisted = await Factory.GetSentCommandRepository()
             .Fetch(robotId, responseBody.SentCommand.CommandId);
         persisted.Should().BeEquivalentTo(responseBody.SentCommand);
@@ -126,5 +126,69 @@ public class CommandController_SendTest : WebAppFactoryFixture
             })
         );
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+    }
+    /// <summary>
+    /// Task 2 : adding new Test case : When send command should have correct command Id.
+    /// </summary>
+    [Fact]
+    public async Task WhenSendCommand_ShouldHaveCorrectCommandId()
+    {
+        var robotId = new Fixture().Create<string>();
+        var username = new Fixture().Create<string>();
+        var password = new Fixture().Create<string>();
+
+        await Factory.GetRobotRepository().Create(robotId, username, password);
+
+        var command = new Fixture().Create<MoveToZPositionCommand>();
+
+        var robotClient = Factory.SetRobotOnline(robotId);
+
+        var client = Factory.CreateTechnicianClient();
+        var response = await client.PostAsync(
+            $"/technician-user/robot/{robotId}/command",
+            JsonContent.Create(new SendCommandRequest()
+            {
+                Command = command,
+            })
+        );
+
+        response.EnsureSuccessStatusCode();
+        var responseBody = await response.Content.ReadFromJsonAsync<SendCommandResponse>();
+
+        responseBody.Should().NotBeNull();
+        responseBody?.SentCommand.CommandId.Should().NotBeNullOrEmpty();
+        // Verify that the CommandId is a valid GUID
+        Guid.TryParse(responseBody.SentCommand.CommandId, out _).Should().BeTrue("CommandId should be a valid GUID");
+    }
+    /// <summary>
+    /// Task 2 : adding new Test case : When send command should Set SentAt toCurrentTime.
+    /// </summary>
+    [Fact]
+    public async Task WhenCommandSends_ShouldSetSentAtToCurrentTime() 
+    {
+        var now = DateTimeUtil.UtcNowMs;
+        var robotId = new Fixture().Create<string>();
+        var username = new Fixture().Create<string>();
+        var password = new Fixture().Create<string>();
+
+        await Factory.GetRobotRepository().Create(robotId, username, password);
+
+        var command = new Fixture().Create<MoveToZPositionCommand>();
+        Factory.SetRobotOnline(robotId);
+
+        var client = Factory.CreateTechnicianClient();
+        var response = await client.PostAsync(
+            $"/technician-user/robot/{robotId}/command",
+            JsonContent.Create(new SendCommandRequest()
+            {
+                Command = command,
+            })
+        );
+
+        response.EnsureSuccessStatusCode();
+        var responseBody = await response.Content.ReadFromJsonAsync<SendCommandResponse>();
+        responseBody?.Should().NotBeNull();
+        responseBody?.SentCommand.SentAt.Should().BeOnOrAfter(now);
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using FluentAssertions;
+using Microsoft.OpenApi;
 using RobotShared.Model.Http;
 using System.Net;
 using System.Net.Http.Json;
@@ -139,7 +140,7 @@ public class LogInController_LogInAsTechnicianTest : WebAppFactoryFixture
         );
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    //Task2 : Missing Unit/Integration Tests
+    //Task 2 : Missing Unit/Integration Tests
     //Added test case for for wrong password, which should return Unauthorized.
     [Fact]
     public async Task WhenPasswordWrong_ShouldReceiveUnauthorized()
@@ -154,5 +155,21 @@ public class LogInController_LogInAsTechnicianTest : WebAppFactoryFixture
             })
         );
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+    
+    //Task 2 : Missing Unit/Integration Tests
+    // Fetch Invalid Token and Should be UnAuthorized
+    [Fact]
+    public async Task TokenWithFetchWithInvalidToke_ShouldbeUnauthorized()
+    {
+        var client = Factory.CreateClient();
+
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "Putting-Invalid-Token-Here");
+
+
+        var response = await client.GetAsync($"/technician-user/robot/Robot1");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
     }
 }
