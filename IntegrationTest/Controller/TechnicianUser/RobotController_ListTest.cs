@@ -104,6 +104,8 @@ public class RobotController_ListTest : WebAppFactoryFixture
 
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added in LogInController-> LogInAsRobot Action with to set the LoginAt timestamp to current time.
+    /// Never updated the LoginAt timestamp here in DB. 
     /// </summary>
     [Fact]
     public async Task WhenRobotLoggedIn_ShouldSetlastLogInAt()
@@ -144,6 +146,8 @@ public class RobotController_ListTest : WebAppFactoryFixture
 
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added in LogInController-> LogInAsRobot Action with to set the LoginAt timestamp to current time.
+    /// Never updated the LoginAt timestamp here in DB.
     /// </summary>
     [Fact]
     public async Task WhenMultipleRobotLoggedIn_ShouldSortByMostRecentLoggedIn()
@@ -199,6 +203,8 @@ public class RobotController_ListTest : WebAppFactoryFixture
 
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added in LogInController-> LogInAsRobot Action with to set the LoginAt timestamp to current time.
+    /// Never updated the LoginAt timestamp here in DB.
     /// </summary>
     [Fact]
     public async Task WhenOneRobotLoggedInAndOtherNot_ShouldSortLoggedInFirst()

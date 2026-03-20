@@ -13,9 +13,12 @@ public interface IConnectedRobotCollection
 
 public class ConnectedRobotCollection : IConnectedRobotCollection
 {
-    // Dictionary is not thread safe, added ConcurrentDictionary instead
+    //<summary>
+    /// Task 1: Bug Fixes
+    // Dictionary is not thread safe, instead of it I have added ConcurrentDictionary 
     // With Race condition, multiple threads can access and modify the dictionary at the same
     // time, which can lead to unpredictable issues like IndexOutOfRange or KeyNotfound may cause datastructure corrupted.
+    //</summary>
     private readonly ConcurrentDictionary<string, IRobotHubReceiver> _userId2Client = new();
 
     public bool TryGetClient(string userId, out IRobotHubReceiver? client)

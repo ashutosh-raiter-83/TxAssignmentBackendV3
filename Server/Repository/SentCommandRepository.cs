@@ -61,6 +61,8 @@ public class SentCommandRepository : ISentCommandRepository
 
     /// <summary>
     /// Task 2: Missing Unit/Integration Tests
+    /// SQL only filtering based on commandId and ignored robotId
+    /// Added robotId in query where clause to make sure the correct filter
     /// </summary>
     public async Task<SentCommand?> Fetch(string robotId, string commandId)
     {
@@ -70,7 +72,8 @@ public class SentCommandRepository : ISentCommandRepository
             FROM
                 sortbot.sent_command
             WHERE
-                command_id = @CommandId",
+                command_id = @CommandId AND
+                    robot_id = @RobotId",
             new
             {
                 CommandId = commandId,
@@ -87,7 +90,10 @@ public class SentCommandRepository : ISentCommandRepository
                 SentAt = sentCommand.sent_at,
             };
     }
-
+    //<summary>
+    // Task1 : Bug fix here by adding LIMIT to 100 which is expected in List method to truncate to 100 only even though
+    // More thn 100 record are set. added LIMIT 100 to cap results to 100 robots.
+    //</summary>
     public async Task<List<SentCommand>> List(string robotId)
     {
         var sentCommands = await _dbConnection.QueryAsync(
@@ -98,7 +104,8 @@ public class SentCommandRepository : ISentCommandRepository
             WHERE
                 robot_id = @RobotId
             ORDER BY
-                sent_at DESC",
+                sent_at DESC
+                LIMIT 100",
             new
             {
                 RobotId = robotId,

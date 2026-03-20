@@ -63,6 +63,10 @@ public class RobotHub_ReportCommandResultTest : WebAppFactoryFixture
 
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added in RobotHub.cs -> ReportCommandResult method to hanle case of Already exists.
+    /// code has written to checkif result was already reported before creating new one
+    ///In receive command repository, There is Fetch method can be used to check an existing result
+    ///with that we can return Already Exists Status code.
     /// </summary>
     [Fact]
     public async Task WhenAlreadyReported_ShouldReceiveAlreadyExists()

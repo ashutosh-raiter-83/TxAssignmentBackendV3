@@ -115,6 +115,8 @@ public class RobotController_FetchTest : WebAppFactoryFixture
 
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added in LogInController-> LogInAsRobot Action with to set the LoginAt timestamp to current time.
+    /// Never updated the LoginAt timestamp here in DB.
     /// </summary>
     [Fact]
     public async Task WhenRobotLoggedIn_ShouldSetlastLogInAt()

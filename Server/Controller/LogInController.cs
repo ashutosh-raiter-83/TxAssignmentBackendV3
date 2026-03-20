@@ -51,7 +51,12 @@ public class LogInController : ControllerBase
 
     /// <summary>
     /// Logs in as a robot
+    /// Task 1 : Bug Fix - Missing Password Verification
+    /// Never updated the LoginAt timestamp here in DB, hence it was always remaining NULL
+    /// Fix added to set the LoginAt timestamp to current time.
     /// Task 2: Missing Unit/Integration Tests
+    /// Password verification looks missing here which would lead to secutiry Issue.
+    /// Fix added to verify the password before authorizing the robot.
     /// </summary>
     [HttpPost("robot", Name = "LogInAsRobot")]
     [ProducesResponseType(typeof(LogInAsRobotResponse), StatusCodes.Status200OK)]
@@ -59,12 +64,12 @@ public class LogInController : ControllerBase
     public async Task<IActionResult> LogInAsRobot([FromBody] LogInAsRobotRequest request)
     {
         var robot = await _robotRepository.FetchAuthCredential(request.Username);
-        if (robot == null)
+        
+        if (robot == null || robot.Password != request.Password)
         {
             return Unauthorized();
         }
-        // Never updated the LoginAt timestamp here in DB, hence it was always remaining NULL
-        //Fix added to set the LoginAt timestamp to current time.
+        
         await _robotRepository.SetLastLogInAtNow(robot.RobotId);
         return Ok(new LogInAsRobotResponse
         {
@@ -79,6 +84,8 @@ public class LogInController : ControllerBase
     /// <summary>
     /// Logs in as a technician
     /// Task 2: Missing Unit/Integration Tests
+    /// Password verification looks missing here which would lead to secutiry Issue.
+    /// Fix added to verify the password before authorizing the robot.
     /// </summary>
     [HttpPost("technician", Name = "LogInAsTechnician")]
     [ProducesResponseType(typeof(LogInAsTechnicianResponse), StatusCodes.Status200OK)]
@@ -86,7 +93,7 @@ public class LogInController : ControllerBase
     public async Task<IActionResult> LogInAsTechnician([FromBody] LogInAsTechnicianRequest request)
     {
         var technician = await _technicianRepository.FetchAuthCredential(request.Username);
-        if (technician == null)
+        if (technician == null || technician.Password != request.Password)
         {
             return Unauthorized();
         }

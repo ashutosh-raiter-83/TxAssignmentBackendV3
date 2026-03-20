@@ -105,15 +105,17 @@ public class RobotRepository : IRobotRepository
                 Password = credential.password,
             };
     }
-
-    public async Task<List<Robot>> List()
-    {
-        /*
+    //<summary>
+    /*
+     * Task  1: Bug Fix
           have made changes instead of DESC in  list added NULLS LAST 
           Becaause of this robots never looogged in appear before robots that have.
             most recently logged in robots appear first, 
-            and robots that have never logged in appear at the end of the list.
+            and robots that have never logged in appear at the end of the list.Also added LIMIT 100 to cap results to 100 robots.
          * */
+    //</summary>
+    public async Task<List<Robot>> List()
+    {
         var robots = await _dbConnection.QueryAsync(
             @"SELECT
                 *

@@ -139,5 +139,20 @@ public class LogInController_LogInAsTechnicianTest : WebAppFactoryFixture
         );
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-
+    //Task2 : Missing Unit/Integration Tests
+    //Added test case for for wrong password, which should return Unauthorized.
+    [Fact]
+    public async Task WhenPasswordWrong_ShouldReceiveUnauthorized()
+    {
+        var client = Factory.CreateClient();
+        var response = await client.PostAsync(
+            "/log-in/technician",
+            JsonContent.Create(new LogInAsTechnicianRequest()
+            {
+                Username = "Technician1",
+                Password = "WrongPassword",
+            })
+        );
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 }

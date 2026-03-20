@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using RobotShared.Model.Http;
+using System.Drawing.Printing;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -140,4 +141,20 @@ public class LogInController_LogInAsRobotTest : WebAppFactoryFixture
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    //Task2: Missing Unit/Integration Tests
+    //Added Tes case for wrong password, which should return Unauthorized
+    [Fact]
+    public async Task WhenPasswordIncorrect_ShouldReceiveUnauthorized()
+    {
+        var client = Factory.CreateClient();
+        var response = await client.PostAsync(
+            "/log-in/robot",
+            JsonContent.Create(new LogInAsRobotRequest()
+            {
+                Username = "Robot1",
+                Password = "WrongPassword",
+            })
+        );
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 }

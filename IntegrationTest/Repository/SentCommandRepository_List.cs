@@ -10,6 +10,8 @@ public class SentCommandRepository_List
 {
     /// <summary>
     /// Task 1: Bug Fixes
+    /// Fix added SentCommandRepository.cs -> List() to return only the latest 100 commands for a robot.
+    /// Added limit to 100 in the SQL query.
     /// </summary>
     [Fact]
     public async Task WhenMoreThan100_ShouldTruncate()
