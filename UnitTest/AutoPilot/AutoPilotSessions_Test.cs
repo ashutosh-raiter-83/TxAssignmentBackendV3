@@ -102,7 +102,7 @@ namespace UnitTest.AutoPilot
                 FailureReason = null,
                 Robot = new Robot(),
                 UnsortedBinZPositions = [1.0f, 2.0f],
-                LabeledBinZPositions = [1.0f, 2.0f],
+                LabeledBinZPositions = [],
             });
 
             session.sortingSets.Should().Be(SortingSets.MoveToUnsortedBin);
@@ -135,12 +135,12 @@ namespace UnitTest.AutoPilot
             var session = new AutoPilotSession();
             session.ProcessResult(new ScanEnvironmentCommandResult
             {
-                CommandId = "cmdA",
+                CommandId = "cmd1",
                 Success = true,
                 FailureReason = null,
                 Robot = new Robot(),
                 UnsortedBinZPositions = [1.0f, 2.0f],
-                LabeledBinZPositions = [1.0f],
+                LabeledBinZPositions = [],
             });
 
             //MOve tofisrst unsorted bib
@@ -163,7 +163,7 @@ namespace UnitTest.AutoPilot
                 CommandId = "cmd4",
                 Success = true,
                 FailureReason = null,
-                TopmostItemLabel = string.Empty,
+                TopmostItemLabel ="",
             });
 
             //Should move tosecond unsorted bin
@@ -184,7 +184,7 @@ namespace UnitTest.AutoPilot
                 FailureReason = null,
                 Robot = new Robot(),
                 UnsortedBinZPositions = [1.0f],
-                LabeledBinZPositions = [2.0f],
+                LabeledBinZPositions = [],
             });
 
             //MOve to  unsorted bib
@@ -207,7 +207,7 @@ namespace UnitTest.AutoPilot
                 CommandId = "cmd4",
                 Success = true,
                 FailureReason = null,
-                TopmostItemLabel = "coffeePacks",
+                TopmostItemLabel = "Beverage",
             });
 
             session.sortingSets.Should().Be(SortingSets.PickItem);
@@ -233,6 +233,96 @@ namespace UnitTest.AutoPilot
 
         }
         [Fact]
+        public void WhenLebelledBInNotMatch_ShouldSkiptoMatchingBin()
+        {
+            var session = new AutoPilotSession();
+            session.ProcessResult(new ScanEnvironmentCommandResult
+            {
+                CommandId = "cmd1",
+                Success = true,
+                FailureReason = null,
+                Robot = new Robot(),
+                UnsortedBinZPositions = [1.0f],
+                LabeledBinZPositions = [2.0f,3.0f],
+            });
+
+            session.ProcessResult(new MoveToZPositionCommandResult
+            {
+                CommandId = "cmd2",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new FaceDirectionCommandResult
+            {
+                CommandId = "cmd3",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new ScanLabeledBinCommandResult
+            {
+                CommandId = "cmd4",
+                Success = true,
+                FailureReason = null,
+                Label = "Meat",
+                Fullness = Fullness.Empty,
+            });
+
+            session.ProcessResult(new MoveToZPositionCommandResult
+            {
+                CommandId = "cmd5",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new FaceDirectionCommandResult
+            {
+                CommandId = "cmd6",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new ScanLabeledBinCommandResult
+            {
+                CommandId = "cmd7",
+                Success = true,
+                FailureReason = null,
+                Label = "Dairy",
+                Fullness = Fullness.Empty,
+            });
+            session.ProcessResult(new MoveToZPositionCommandResult
+            {
+                CommandId = "cmd8",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new FaceDirectionCommandResult
+            {
+                CommandId = "cmd9",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new ScanUnsortedBinCommandResult
+            {
+                CommandId = "cmd10",
+                Success = true,
+                FailureReason = null,
+                TopmostItemLabel = "Dairy",
+            });
+
+            session.ProcessResult(new PickItemCommandResult
+            {
+                CommandId = "cmd11",
+                Success = true,
+                FailureReason = null,
+            });
+
+
+            session.sortingSets.Should().Be(SortingSets.MoveToLabeledBin);
+            var command = session.GetNextCommand();
+            command.Should().BeOfType<MoveToZPositionCommand>();
+            ((MoveToZPositionCommand)command!).ZPosition.Should().Be(3.0f);
+
+
+        }
+        [Fact]
         public void WhenFullSortCycleCompleted_ShouldIncrementSorted()
         {
             var session = new AutoPilotSession();
@@ -246,58 +336,74 @@ namespace UnitTest.AutoPilot
                 LabeledBinZPositions = [2.0f],
             });
 
-            //MOve to  unsorted bin
+            //PRescan MOve to  unsorted bin
             session.ProcessResult(new MoveToZPositionCommandResult
             {
                 CommandId = "cmd2",
                 Success = true,
                 FailureReason = null,
             });
-            //Face to unsorted bin
+            //PRescan  Face to unsorted bin
             session.ProcessResult(new FaceDirectionCommandResult
             {
                 CommandId = "cmd3",
                 Success = true,
                 FailureReason = null,
             });
-            // Scan unsorted bin -emoty
-            session.ProcessResult(new ScanUnsortedBinCommandResult
+            //PRescan  Face lebeled bin
+            session.ProcessResult(new ScanLabeledBinCommandResult
             {
                 CommandId = "cmd4",
                 Success = true,
                 FailureReason = null,
-                TopmostItemLabel = "coffeePacks",
+                Label = "Beverage",
+                Fullness = Fullness.Empty,
             });
-            session.ProcessResult(new PickItemCommandResult
+            // Sorting now : Move to Unsorted bin
+            session.ProcessResult(new MoveToZPositionCommandResult
             {
                 CommandId = "cmd5",
                 Success = true,
                 FailureReason = null,
             });
-            session.ProcessResult(new MoveToZPositionCommandResult
+            // Face unsrorted Bin
+            session.ProcessResult(new FaceDirectionCommandResult
             {
                 CommandId = "cmd6",
+                Success = true,
+                FailureReason = null,
+            });
+            // Scan unsorted bin -emoty
+            session.ProcessResult(new ScanUnsortedBinCommandResult
+            {
+                CommandId = "cmd7",
+                Success = true,
+                FailureReason = null,
+                TopmostItemLabel = "Beverage",
+            });
+            session.ProcessResult(new PickItemCommandResult
+            {
+                CommandId = "cmd8",
+                Success = true,
+                FailureReason = null,
+            });
+            session.ProcessResult(new MoveToZPositionCommandResult
+            {
+                CommandId = "cmd9",
                 Success = true,
                 FailureReason = null,
             });
 
             session.ProcessResult(new FaceDirectionCommandResult
             {
-                CommandId = "cmd7",
+                CommandId = "cmd10",
                 Success = true,
                 FailureReason = null,
             });
-            session.ProcessResult(new ScanLabeledBinCommandResult
-            {
-                CommandId = "cmd8",
-                Success = true,
-                FailureReason = null,
-                Label = "CoffeePacks",
-                Fullness = Fullness.Empty,
-            });
+            
             session.ProcessResult(new PlaceItemCommandResult
             {
-                CommandId = "cmd9",
+                CommandId = "cmd11",
                 Success = true,
                 FailureReason = null,
             });
@@ -345,7 +451,7 @@ namespace UnitTest.AutoPilot
                 FailureReason = null,
                 Robot = new Robot(),
                 UnsortedBinZPositions = [1.0f],
-                LabeledBinZPositions = [2.0f],
+                LabeledBinZPositions = [],
             });
 
             session.ProcessResult(new MoveToZPositionCommandResult

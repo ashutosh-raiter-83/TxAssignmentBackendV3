@@ -25,7 +25,7 @@ namespace IntegrationTest.Controller.TechnicianUser
         public async Task State_WhenNotAutheticated_ShouldReceiveUnAuthorze()
         {
             var clnt = Factory.CreateClient();
-            var resp = await clnt.PostAsync("technician-user/robot/Robot1/autopilot/state", null);
+            var resp = await clnt.GetAsync("technician-user/robot/Robot1/autopilot/state");
             resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
 
@@ -35,7 +35,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             var clnt = Factory.CreateTechnicianClient();
             var robotId = new Fixture().Create<string>();
 
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/state", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/state");
             resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
         [Fact]
@@ -45,7 +45,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             await Factory.GetRobotRepository().Create(robotId, robotId, robotId);
             
             var clnt = Factory.CreateTechnicianClient();
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/state", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/state");
             resp.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var body = await resp.Content.ReadFromJsonAsync<AutoPilotStateResponse>();
@@ -64,7 +64,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/activate", null);
 
 
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/state", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/state");
             resp.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var body = await resp.Content.ReadFromJsonAsync<AutoPilotStateResponse>();
@@ -80,7 +80,7 @@ namespace IntegrationTest.Controller.TechnicianUser
         public async Task Statistics_WhenNotAutheticated_ShouldReceiveUnAuthorze()
         {
             var clnt = Factory.CreateClient();
-            var resp = await clnt.PostAsync("technician-user/robot/Robot1/autopilot/statistics", null);
+            var resp = await clnt.GetAsync("technician-user/robot/Robot1/autopilot/statistics");
             resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
 
@@ -90,7 +90,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             var clnt = Factory.CreateTechnicianClient();
             var robotId = new Fixture().Create<string>();
 
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/statistics", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/statistics");
             resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
         [Fact]
@@ -100,7 +100,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             await Factory.GetRobotRepository().Create(robotId, robotId, robotId);
 
             var clnt = Factory.CreateTechnicianClient();
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/statistics", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/statistics");
             resp.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var body = await resp.Content.ReadFromJsonAsync<AutoPilotStatisticResponse>();
@@ -121,7 +121,7 @@ namespace IntegrationTest.Controller.TechnicianUser
             await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/activate", null);
 
 
-            var resp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/statistics", null);
+            var resp = await clnt.GetAsync($"technician-user/robot/{robotId}/autopilot/statistics");
             resp.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var body = await resp.Content.ReadFromJsonAsync<AutoPilotStatisticResponse>();

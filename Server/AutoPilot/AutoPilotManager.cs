@@ -109,7 +109,7 @@ namespace Server.AutoPilot
 
         public void OnFlagReported(string robotId)
         {
-            if (!_autoPilotSessions.TryGetValue(robotId, out var session))
+            if (_autoPilotSessions.TryGetValue(robotId, out var session))
                 session?.Pause();
         }
 

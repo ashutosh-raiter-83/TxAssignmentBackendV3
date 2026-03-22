@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
-using RobotShared.Model;
+﻿using RobotShared.Model;
 using RobotShared.Model.Command;
 using RobotShared.Model.CommandResult;
-using System.Security.Cryptography;
 
 namespace Server.AutoPilot
 {
@@ -11,8 +9,8 @@ namespace Server.AutoPilot
     /// </summary>
     public class AutoPilotSession
     {
-        public AutoPilotState State { get; set; } = AutoPilotState.Running;
-        public SortingSets sortingSets { get; set; } = SortingSets.ScanEnvironment;
+        public AutoPilotState State { get; private set; } = AutoPilotState.Running;
+        public SortingSets sortingSets { get; private set; } = SortingSets.ScanEnvironment;
 
         public int ItemsSorted { get; private set; }
         public int CommandSent { get; private set; }
@@ -26,7 +24,7 @@ namespace Server.AutoPilot
         private readonly Dictionary<float, string> _lebeledBinLebles = new();
         private readonly Dictionary<float, Fullness> _lebeledBinFullnes = new();
         private readonly HashSet<float> _scannedLebeledBin = [];
-
+        private bool _beforeScanLabeledBins;
 
         /// <summary>
         ///  Get the next command for autopilot to execute based on current state and sorting progress or null if autopilotnot running.
@@ -38,6 +36,7 @@ namespace Server.AutoPilot
             {
                 return null;
             }
+            CommandSent++;
             return sortingSets switch
             {
                 SortingSets.ScanEnvironment => new ScanEnvironmentCommand(),
@@ -136,6 +135,7 @@ namespace Server.AutoPilot
                 State = AutoPilotState.Running;
                 sortingSets = SortingSets.ScanEnvironment;
                 _scannedLebeledBin.Clear();
+                _beforeScanLabeledBins = false;
                 _lebeledBinLebles.Clear();
                 _lebeledBinFullnes.Clear();
             }
@@ -154,30 +154,41 @@ namespace Server.AutoPilot
                 _unsortedBinPosition = scanResult.UnsortedBinZPositions ?? [];
                 _lebeledBinPosition = scanResult.LabeledBinZPositions ?? [];
                 _currentUnsortedBinIndex = 0;
+                _currentLabeledBinIndex = 0;
                 _scannedLebeledBin.Clear();
                 _lebeledBinLebles.Clear();
                 _lebeledBinFullnes.Clear();
+                _beforeScanLabeledBins = false;
 
-                if (_unsortedBinPosition.Count > 0)
+                if (_unsortedBinPosition.Count == 0)
                 {
-                    sortingSets = SortingSets.MoveToUnsortedBin;
+                    // Here no unsorted bins so need to rescan after cycle
+                    sortingSets = SortingSets.ScanEnvironment;
+                    return;
+                }
+                if (_lebeledBinPosition.Count > 0)
+                {
+                    _beforeScanLabeledBins = true;
+                    _currentLabeledBinIndex = 0;
+                    sortingSets = SortingSets.MoveToLabeledBin;
                 }
                 else
                 {
                     //Non sorted bins rescan after a cyle
-                    sortingSets = SortingSets.ScanEnvironment;
+                    sortingSets = SortingSets.MoveToUnsortedBin;
                 }
             }
         }
         private void FindMatchingLabeledBin()
         {
             // Try to find a labeled bin that matches the held item label
-            foreach(var binZ in _lebeledBinLebles)
+            foreach (var lbl in _lebeledBinLebles)
             {
-                if (binZ.Value==_heldItemlebel && _lebeledBinFullnes.TryGetValue(binZ.Key,out var fullness) &&
+                if (lbl.Value==_heldItemlebel && 
+                    _lebeledBinFullnes.TryGetValue(lbl.Key,out var fullness) &&
                     fullness != Fullness.CompletelyFilled)
                 {
-                    _currentLabeledBinIndex = _lebeledBinPosition.IndexOf(binZ.Key);
+                    _currentLabeledBinIndex = _lebeledBinPosition.IndexOf(lbl.Key);
                     if(_currentLabeledBinIndex >= 0)
                     {
                         return;
@@ -188,7 +199,7 @@ namespace Server.AutoPilot
             _currentLabeledBinIndex = 0;
             for(int x=0; x < _lebeledBinPosition.Count; x++)
             {
-                if (_scannedLebeledBin.Contains(_lebeledBinPosition[x]))
+                if (!_scannedLebeledBin.Contains(_lebeledBinPosition[x]))
                 {
                     _currentLabeledBinIndex = x;
                     return;
@@ -202,7 +213,7 @@ namespace Server.AutoPilot
         {
             if (result is ScanUnsortedBinCommandResult scanResult)
             {
-                if (!string.IsNullOrEmpty(scanResult.TopmostItemLabel))
+                if (string.IsNullOrEmpty(scanResult.TopmostItemLabel))
                 {
                     // Bin is empty move to Next unsorted bin
                     MovementToNextUnsortedBin();
@@ -231,47 +242,74 @@ namespace Server.AutoPilot
         {
             if (result is ScanLabeledBinCommandResult scanResult)
             {
-                var currentBinZ = _lebeledBinPosition[_currentLabeledBinIndex];
-                _scannedLebeledBin.Add(currentBinZ);
-                _lebeledBinLebles[currentBinZ] = scanResult.Label;
-                _lebeledBinFullnes[currentBinZ] = scanResult.Fullness;
-                
-                if (scanResult.Label == _heldItemlebel && scanResult.Fullness != Fullness.CompletelyFilled)
+                var current = _lebeledBinPosition[_currentLabeledBinIndex];
+                _scannedLebeledBin.Add(current);
+                _lebeledBinLebles[current] = scanResult.Label;
+                _lebeledBinFullnes[current] = scanResult.Fullness;
+
+                if (_beforeScanLabeledBins) 
                 {
-                    sortingSets = SortingSets.PlaceItem;
-                }
-                else
-                {
-                    // This bin is not right, try next one
+                    //Contiue to prescan remaining lbeled bins
                     _currentLabeledBinIndex++;
-                    if (_currentLabeledBinIndex < _lebeledBinPosition.Count)
+                    if(_currentLabeledBinIndex < _lebeledBinPosition.Count)
                     {
                         sortingSets = SortingSets.MoveToLabeledBin;
                     }
                     else
                     {
-                        // No more labeled bins to try, go back to unsorted bins
-                        // No marchingbinfound this Item can't be placed.
-                        sortingSets = SortingSets.ScanEnvironment;
+                        // All lebeled bins to be scanned,  start sorting unsorted bins
+                        _beforeScanLabeledBins = false;
+                        _currentUnsortedBinIndex = 0;
+                        sortingSets = SortingSets.MoveToUnsortedBin;
                     }
                 }
+                else
+                {
+                    if(scanResult.Label == _heldItemlebel && 
+                        scanResult.Fullness != Fullness.CompletelyFilled)
+                    {
+                        sortingSets = SortingSets.PlaceItem;
+                    }
+                    else
+                    {
+                        //Nomatching or if ful; cjeckor next leblebins
+                        _currentLabeledBinIndex++;
+                        if (_currentLabeledBinIndex < _lebeledBinPosition.Count)
+                        {
+                            sortingSets = SortingSets.MoveToLabeledBin;
+                        }
+                        else
+                        {
+                            //No match binl item can be placed
+                            //rescan envirnment
+                            sortingSets = SortingSets.ScanEnvironment;
+                        }
+                    }
+                }
+                
             }
         }
         private void FaceLebeledBinCompleteHandler()
         {
-            var currentBinZ = _lebeledBinPosition[_currentLabeledBinIndex];
-            if(_scannedLebeledBin.Contains(currentBinZ) && _lebeledBinLebles.TryGetValue(currentBinZ, out var label) 
-                && label == _heldItemlebel && _lebeledBinFullnes.TryGetValue(currentBinZ,out var fullness) &&
-                fullness!=Fullness.CompletelyFilled)
+            if (_beforeScanLabeledBins)
             {
-                // Already scanned this bin, just place item
-                sortingSets = SortingSets.PlaceItem;
+                sortingSets =SortingSets.ScanLabeledBin;
+                return;
             }
-            else
-            {
-                // Need to scan this bin to check if it's the right one
-                sortingSets = SortingSets.ScanLabeledBin;
-            }
+            sortingSets = SortingSets.PlaceItem;
+            //var currentBinZ = _lebeledBinPosition[_currentLabeledBinIndex];
+            //if(_scannedLebeledBin.Contains(currentBinZ) && _lebeledBinLebles.TryGetValue(currentBinZ, out var label) 
+            //    && label == _heldItemlebel && _lebeledBinFullnes.TryGetValue(currentBinZ,out var fullness) &&
+            //    fullness!=Fullness.CompletelyFilled)
+            //{
+            //    // Already scanned this bin, just place item
+            //    sortingSets = SortingSets.PlaceItem;
+            //}
+            //else
+            //{
+            //    // Need to scan this bin to check if it's the right one
+            //    sortingSets = SortingSets.ScanLabeledBin;
+            //}
         }
         private void PlaceItemResultHandler()
         {

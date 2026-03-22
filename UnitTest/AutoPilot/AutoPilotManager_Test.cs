@@ -152,6 +152,7 @@ namespace UnitTest.AutoPilot
             var (manager, connectedRobots, _) = CreateManager();
             var clntMock = new Mock<IRobotHubReceiver>();
             IRobotHubReceiver? outClnt = clntMock.Object;
+            
             connectedRobots
                 .Setup(a => a.TryGetClient("robot1", out outClnt))
                 .Returns(true);
