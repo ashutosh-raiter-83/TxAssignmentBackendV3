@@ -7,7 +7,7 @@ using RobotShared.Model;
 using RobotShared.Model.CommandResult;
 using Server.Repository;
 using Server.Util;
-
+using Server.AutoPilot;
 namespace Server.Hub;
 
 [Authorize]
@@ -18,16 +18,18 @@ public class RobotHub : StreamingHubBase<IRobotHub, IRobotHubReceiver>, IRobotHu
     private readonly IReceivedCommandResultRepository _receivedCommandResultRepository;
 
     private string _robotId;
-
+    private readonly IAutoPilotManager _autoPilotManager;
     public RobotHub(
         IConnectedRobotCollection connectedRobotCollection,
         ISentCommandRepository sentCommandRepository,
-        IReceivedCommandResultRepository receivedCommandResultRepository
+        IReceivedCommandResultRepository receivedCommandResultRepository,
+        IAutoPilotManager autoPilotManager
     )
     {
         _connectedRobotCollection = connectedRobotCollection;
         _sentCommandRepository = sentCommandRepository;
         _receivedCommandResultRepository = receivedCommandResultRepository;
+        _autoPilotManager = autoPilotManager;
     }
 
     private string EnsureRobotId()
@@ -73,6 +75,13 @@ public class RobotHub : StreamingHubBase<IRobotHub, IRobotHubReceiver>, IRobotHu
 
         // Task 3: Feature Development
         // TODO Auto-pilot should be notified of command result so it can determine what to do next
+        // Here notify autopilot of command result so it can be dcide whatsnext?
+        // //Code added for  Task 3: Feature Development :
+        await _autoPilotManager.OnCOmmandResultRecieved(_robotId, commandResult);
+
+        // if clear flag command success then resume autopilot
+        if (commandResult is ClearFlagsCommandResult { Success: true })
+            await _autoPilotManager.OnFlagsCleared(_robotId);
     }
 
     protected override async ValueTask OnConnected()
@@ -94,7 +103,9 @@ public class RobotHub : StreamingHubBase<IRobotHub, IRobotHubReceiver>, IRobotHu
 
         // Task 3: Feature Development
         // TODO Auto-pilot should be aware of this and not send commands until flag is cleared
-
+        //Code added for  Task 3: Feature Development : 
+        // Pause the autopilot here when flag is reported
+        _autoPilotManager.OnFlagReported(_robotId);
         return Task.CompletedTask;
     }
 }

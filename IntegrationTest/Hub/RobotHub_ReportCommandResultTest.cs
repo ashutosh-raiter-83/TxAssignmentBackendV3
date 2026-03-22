@@ -99,4 +99,91 @@ public class RobotHub_ReportCommandResultTest : WebAppFactoryFixture
         );
         exception.StatusCode.Should().Be(StatusCode.AlreadyExists);
     }
+    ///<summary>
+    /// //Task 2 : Missing Unit/Integration Tests
+    /// Adding Test casefpr Report COmmand Result Types
+    /// </summary>
+    [Fact]
+    public async Task WhenReportePlacedItemCommandResult_ShouldBeSuccess()
+    {
+        var robotId = new Fixture().Create<string>();
+        var username = new Fixture().Create<string>();
+        var password = new Fixture().Create<string>();
+
+        await Factory.GetRobotRepository().Create(robotId, username, password);
+
+        var sentCommand = new Fixture()
+            .Build<SentCommand>()
+            .With(x => x.RobotId, robotId)
+            .With(x => x.Command, new Fixture().Create<PlaceItemCommand>())
+            .With(x => x.SentAt, DateTimeUtil.UtcNowMs)
+            .Create();
+
+        await Factory.GetSentCommandRepository().Create(sentCommand);
+
+        var (client, _) = await Factory.CreateMagicOnionClient(robotId);
+
+        var commandResult = new Fixture()
+            .Build<PlaceItemCommandResult>()
+            .With(x => x.CommandId, sentCommand.CommandId)
+            .Create();
+        await client.ReportCommandResult(commandResult);
+
+        var dataPersisted = await Factory.GetReceivedCommandResultRepository().Fetch(robotId, sentCommand.CommandId);
+
+        dataPersisted.Should().NotBeNull();
+        dataPersisted?.CommandId.Should().Be(sentCommand.CommandId);
+        dataPersisted?.RobotId.Should().Be(robotId);
+    }
+    ///<summary>
+    /// //Task 2 : Missing Unit/Integration Tests
+    /// Adding Test casefpr Report COmmand Result Types
+    /// </summary>
+    [Fact]
+    public async Task WhenReporteScanEnvironmentCommandResult_ShouldBeSuccess()
+    {
+        var robotId = new Fixture().Create<string>();
+        var username = new Fixture().Create<string>();
+        var password = new Fixture().Create<string>();
+
+        await Factory.GetRobotRepository().Create(robotId, username, password);
+
+        var sentCommand = new Fixture()
+            .Build<SentCommand>()
+            .With(x => x.RobotId, robotId)
+            .With(x => x.Command, new Fixture().Create<ScanEnvironmentCommand>())
+            .With(x => x.SentAt, DateTimeUtil.UtcNowMs)
+            .Create();
+
+        await Factory.GetSentCommandRepository().Create(sentCommand);
+
+        var (client, _) = await Factory.CreateMagicOnionClient(robotId);
+
+        var commandResult = new ScanEnvironmentCommandResult()
+        {
+            CommandId=sentCommand.CommandId,
+            Success =true,
+            FailureReason = null,
+            Robot = new RobotShared.Model.Robot()
+            {
+                ZPosition =0,
+                FacingDirection =RobotShared.Model.FacingDirection.Neutral,
+                IsHoldingItem =false,
+                FlagReason=null,
+                FlaggedLabeledBins = [],
+                FlaggedUnsortedBins = [],
+                ServerCausedFlagCount= 0,
+                CorrectSortCount =0
+            },
+            UnsortedBinZPositions = [0.5f, 1.5f],
+            LabeledBinZPositions = [0.5f, 1.5f]
+        };
+        await client.ReportCommandResult(commandResult);
+
+        var dataPersisted = await Factory.GetReceivedCommandResultRepository().Fetch(robotId, sentCommand.CommandId);
+
+        dataPersisted.Should().NotBeNull();
+        dataPersisted?.CommandId.Should().Be(sentCommand.CommandId);
+        dataPersisted?.RobotId.Should().Be(robotId);
+    }
 }

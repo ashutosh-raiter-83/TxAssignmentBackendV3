@@ -20,7 +20,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Testcontainers.PostgreSql;
 using Xunit;
-
+using Server.AutoPilot;
 namespace IntegrationTest;
 
 public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
@@ -232,5 +232,9 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public ReceivedCommandResultRepository GetReceivedCommandResultRepository()
     {
         return new ReceivedCommandResultRepository(GetDbConnection());
+    }
+    public IAutoPilotManager GetAutoPilotManager()
+    {
+        return Server.Services.GetRequiredService<IAutoPilotManager>();
     }
 }

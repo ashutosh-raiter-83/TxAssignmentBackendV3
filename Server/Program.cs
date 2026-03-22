@@ -14,7 +14,7 @@ using Server.Hub;
 using Server.Repository;
 using System.Data;
 using System.Reflection;
-
+using Server.AutoPilot;
 namespace Server;
 
 public class Program
@@ -53,7 +53,7 @@ public class Program
         builder.Services.AddScoped<ITechnicianRepository, TechnicianRepository>();
         builder.Services.AddScoped<ISentCommandRepository, SentCommandRepository>();
         builder.Services.AddScoped<IReceivedCommandResultRepository, ReceivedCommandResultRepository>();
-
+        builder.Services.AddSingleton<IAutoPilotManager,AutoPilotManager>();
         builder.Services.AddMagicOnion(options =>
         {
             options.GlobalFilters.Add<RobotUserAuthorizationMagicOnionFilter>();

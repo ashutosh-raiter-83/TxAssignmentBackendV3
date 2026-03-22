@@ -32,13 +32,13 @@ namespace IntegrationTest.RobotSimulator
 
             var (client, _) = await Factory.CreateMagicOnionClient(robotId);
 
-            IRobotHubReceiverEvents.OnCommandReceivedHandler sendCommand = null;
+            IRobotHubReceiverEvents.OnCommandReceivedHandler Rcvcommand = null;
 
             var events = new Mock<IRobotHubReceiverEvents>();
             events.SetupAdd(p=> p.OnCommandReceivedEvent += It.IsAny<IRobotHubReceiverEvents.OnCommandReceivedHandler>())
                 .Callback<IRobotHubReceiverEvents.OnCommandReceivedHandler>((handler) =>
                 {
-                    sendCommand = handler;
+                    Rcvcommand = handler;
                 });
             
             var simulator = new MyRobotSimulator(
@@ -60,7 +60,7 @@ namespace IntegrationTest.RobotSimulator
 
             async Task<SentCommand> SendCommand(CommandBase command)
             {
-               var sentCommand = new SentCommand()
+                var sentCommand = new SentCommand()
                 {
                     CommandId = new Fixture().Create<string>(),
                     RobotId = robotId,
@@ -68,8 +68,10 @@ namespace IntegrationTest.RobotSimulator
                     SentAt = DateTimeUtil.UtcNowMs,
                 };
                 await Factory.GetSentCommandRepository().Create(sentCommand);
-                sendCommand(sentCommand);
+
+                Rcvcommand(sentCommand);
                 return sentCommand;
+
             }
 
             //Flag to Robot
@@ -78,8 +80,8 @@ namespace IntegrationTest.RobotSimulator
             //await simulator.WaitForCommandQueueEmpty();
             //simulator.Environment.Robot?.FlagReason = RobotShared.Model.RobotFlagReason.HardwareFault;
             //simulator.Environment.Robot?.FlagReason.Value.ToString().Should().NotBeNull();
-            
-            
+
+
             //Flag to Clear here
             await SendCommand(new MoveToZPositionCommand() { ZPosition = 1.0f });
             await simulator.WaitForCommandQueueEmpty();
