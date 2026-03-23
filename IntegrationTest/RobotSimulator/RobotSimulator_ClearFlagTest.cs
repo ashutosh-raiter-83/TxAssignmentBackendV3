@@ -76,7 +76,7 @@ namespace IntegrationTest.RobotSimulator
 
             //Flag to Robot
             //await SendCommand(new MoveToZPositionCommand() { ZPosition = -1.0f });
-            //Need to check what is wrong
+            //Need to check what is wrong - Checked and nowworking
             //await simulator.WaitForCommandQueueEmpty();
             //simulator.Environment.Robot?.FlagReason = RobotShared.Model.RobotFlagReason.HardwareFault;
             //simulator.Environment.Robot?.FlagReason.Value.ToString().Should().NotBeNull();

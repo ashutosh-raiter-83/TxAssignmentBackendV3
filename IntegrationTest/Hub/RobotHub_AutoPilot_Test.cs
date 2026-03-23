@@ -79,6 +79,7 @@ namespace IntegrationTest.Hub
             var autopilot = Factory.GetAutoPilotManager();
             await autopilot.ActivateAutoPilot(robotId);
 
+            //Pausing here
             autopilot.OnFlagReported(robotId);
             autopilot.GetState(robotId).Should().Be(AutoPilotState.Paused);
 

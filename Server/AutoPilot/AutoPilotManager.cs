@@ -115,7 +115,7 @@ namespace Server.AutoPilot
 
         public async Task OnFlagsCleared(string robotId)
         {
-            if (!_autoPilotSessions.TryGetValue(robotId, out var session))
+            if (_autoPilotSessions.TryGetValue(robotId, out var session))
             {
                 session?.Resume();
                 if(session?.State == AutoPilotState.Running)
