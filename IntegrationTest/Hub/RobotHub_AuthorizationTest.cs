@@ -104,5 +104,25 @@ namespace IntegrationTest.Hub
             await hubClientB.DisposeAsync();
 
         }
+        ///<summary>
+        /// Task 2 : Missing Unit/Integration Test
+        /// </summary>
+        /// Adding this testcase when Invlidd Token given Should retrurn UnAutheticated
+        [Fact]
+        public async Task WhenInvalidBearerTokken_ShouldBebeUnAuthenticated()
+        {
+            var recver = new Mock<IRobotHubReceiver>();
+            var excpetion = await Assert.ThrowsAnyAsync<RpcException>(() => StreamingHubClient
+                .ConnectAsync<IRobotHub,IRobotHubReceiver>(
+                Factory.CreateGrpcChannel(),
+                recver.Object,
+                    option: new CallOptions(new Metadata()
+                    {
+                        {"authorization",$"Bearer Invalid Token" },
+                    })
+                )
+            );
+            excpetion.StatusCode.Should().Be(StatusCode.Unauthenticated);
+        }
     }
 }

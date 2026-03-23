@@ -21,7 +21,7 @@ namespace IntegrationTest.RobotSimulator
         /// First Flag to Robot , then Clear Flag, should resolve the flag.
         /// </summary>
         /// <returns></returns>
-        //[Fact] //- Commented for time being - Willanalyze more on why failing 
+        [Fact] //- Commented for time being - Willanalyze more on why failing - Its fixed now 
         public async Task AfterServerCausedWhenClearFlag_ShouldResolveFlagandAllwoCommands()
         {
             var robotId = new Fixture().Create<string>();

@@ -20,27 +20,27 @@ namespace IntegrationTest.Controller.TechnicianUser
         ///// <summary>
         ///// Task 3 :Feature Development - CommandController with  AutoPilot Testing 
         ///// </summary>
-        //[Fact]
-        //public async Task WhenAutoPilotRunning_CommandsByUserShouldBeRejected()
-        //{
-        //    var robotId = new Fixture().Create<string>();
-        //    await Factory.GetRobotRepository().Create(robotId, robotId, robotId);
-        //    Factory.SetRobotOnline(robotId);
+        [Fact]
+        public async Task WhenAutoPilotRunning_CommandsByUserShouldBeRejected()
+        {
+            var robotId = new Fixture().Create<string>();
+            await Factory.GetRobotRepository().Create(robotId, robotId, robotId);
+            Factory.SetRobotOnline(robotId);
 
-        //    var clnt = Factory.CreateTechnicianClient();
-        //    var actResp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/activate", null);
-        //    actResp.StatusCode.Should().Be(HttpStatusCode.OK);
+            var clnt = Factory.CreateTechnicianClient();
+            var actResp = await clnt.PostAsync($"technician-user/robot/{robotId}/autopilot/activate", null);
+            actResp.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        //    // Since copilot is activateed and running...sending command
-        //    var commandResp = await clnt.PostAsync(
-        //    $"/technician-user/robot/{robotId}/command",
-        //    JsonContent.Create(new SendCommandRequest()
-        //    {
-        //        Command = new ScanEnvironmentCommand()
-        //    })
-        //);
-        //    commandResp.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        //}
+            // Since copilot is activateed and running...sending command
+            var commandResp = await clnt.PostAsync(
+            $"/technician-user/robot/{robotId}/command",
+            JsonContent.Create(new SendCommandRequest()
+            {
+                Command = new ScanEnvironmentCommand()
+            })
+        );
+            commandResp.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
 
         [Fact]
         public async Task WhenAutoDeActive_CommandsByUserShouldBeSucceesed()

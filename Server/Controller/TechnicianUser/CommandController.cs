@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RobotShared.Model.Command;
 using RobotShared.Model.Http.TechnicianUser;
 using Server.Auth;
+using Server.AutoPilot;
 using Server.Hub;
 using Server.Repository;
 using Server.Util;
@@ -18,15 +19,17 @@ public class CommandController : ControllerBase
     private readonly IConnectedRobotCollection _connectedRobotCollection;
     private readonly IRobotRepository _robotRepository;
     private readonly ISentCommandRepository _sentCommandRepository;
+    private readonly IAutoPilotManager _autoPilotManager;
     public CommandController(
         IConnectedRobotCollection connectedRobotCollection,
         IRobotRepository robotRepository,
-        ISentCommandRepository sentCommandRepository
+        ISentCommandRepository sentCommandRepository, IAutoPilotManager autoPilotManager
     )
     {
         _connectedRobotCollection = connectedRobotCollection;
         _robotRepository = robotRepository;
         _sentCommandRepository = sentCommandRepository;
+        _autoPilotManager = autoPilotManager;
     }
 
     /// <summary>
@@ -38,6 +41,16 @@ public class CommandController : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Send([FromRoute] string robotId, [FromBody] SendCommandRequest request)
     {
+        // I think based on scenario while auto-pilot mode is activated and running 
+        // Any commands to control the robot sent by users must be ignored
+        // So adding logic for this scenario, which I missed with earlier implementation
+        if (_autoPilotManager.IsRunning(robotId))
+        {
+            return Problem(
+                detail: "Autopilot is in running state, deactivate before sending commands",
+                statusCode:(int)HttpStatusCode.Conflict
+                );
+        }
         if (_connectedRobotCollection.TryGetClient(robotId, out var client))
         {
             var sentCommand = new SentCommand()
