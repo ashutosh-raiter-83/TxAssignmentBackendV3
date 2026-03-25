@@ -30,7 +30,7 @@ public class RobotHub_OnConnectedTest : WebAppFactoryFixture
     [Fact]
     public async Task WhenExpiredToken_ShouldReceiveUnauthenticated()
     {
-        var token = Factory.GenerateToken(UserType.Robot, "Robot1", DateTime.UtcNow.AddSeconds(5));
+        var token = Factory.GenerateToken(UserType.Robot, "Robot1", DateTime.UtcNow.AddSeconds(10));
         await Task.Delay(TimeSpan.FromSeconds(20));
         var receiver = new Mock<IRobotHubReceiver>();
         var exception = await Assert.ThrowsAnyAsync<RpcException>(() => StreamingHubClient
